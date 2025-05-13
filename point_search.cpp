@@ -53,7 +53,7 @@ vector<uint64_t> break_down_to_pow10(uint64_t num) {
 
 auto main() -> int {
 
-    Secp256k1 *secp256k1 = new Secp256k1(); secp256k1->Context_Init();
+    Secp256k1 *secp256k1 = new Secp256k1(); secp256k1->Init();
     
     mpz_class pk; pk = 1;
     vector<mpz_class> S_table;

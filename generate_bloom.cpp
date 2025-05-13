@@ -46,7 +46,7 @@ inline uint64_t str_to_uint64(std::string const& value) {
 auto main() -> int {
     
     auto start = std::chrono::high_resolution_clock::now();
-    Secp256k1 *secp256k1 = new Secp256k1(); secp256k1->Context_Init();
+    Secp256k1 *secp256k1 = new Secp256k1(); secp256k1->Init();
     
     fs::path current_path = fs::current_path();
     auto file_list = get_files_in_directory(current_path);

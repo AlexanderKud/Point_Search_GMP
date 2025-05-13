@@ -22,19 +22,17 @@ public:
 class Secp256k1 {
 public:
     Point G;
-    //Point Infinity;
     Elliptic_Curve EC;
     Secp256k1();
+    std::string GetPublicKeyHex(Point &p);
     Point ParsePublicKeyHex(std::string pubkey);
     Point DoublePoint(Point &p);
     Point AddPoints(Point &a, Point &b);
+    Point SubtractPoints(Point &a, Point &b);
     Point ScalarMultiplication(mpz_class pk);
     Point PointMultiplication(Point &a, mpz_class pk);
-    Point NegatePoint(Point &p);
-    Point SubtractPoints(Point &a, Point &b);
     Point PointDivision(Point &a, mpz_class sc);
-    std::string GetPublicKeyHex(Point &p);
-    void Context_Init();
+    void Init();
 };
 
 #endif
