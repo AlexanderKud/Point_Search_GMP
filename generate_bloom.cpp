@@ -127,9 +127,9 @@ auto main() -> int {
     int n_cores = 4;  //actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...) divided by 2
     uint64_t count = uint64_t(pow(2, block_width) / n_cores); // actual cores = 8  8 / 2 = 4 cores for each lambda function
     mpz_class add_key;                                        // should be some power of two to evenly divide the space between threads
-    add_key = count;
-    Point Add_Point = secp256k1->ScalarMultiplication(add_key);
-    
+    add_key = count;                                          // here we have namely 11 threads( 1-main thread 2,3 - lambda functions
+    Point Add_Point = secp256k1->ScalarMultiplication(add_key);// and 4 threads inside each lambda for process_chunk
+                                                               // execution timings are relative to my pc only yours might be quicker    
     auto bloom_create1 = [&]() {
         string bloomfile = "bloom1.bf";
         Point P = puzzle_point;
