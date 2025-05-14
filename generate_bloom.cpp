@@ -81,15 +81,14 @@ auto main() -> int {
     print_time(); cout << "Block Width: 2^" << block_width << endl;
     print_time(); cout << "Search Pub : " << search_pub << endl;
 
-    Point start_point, end_point, puzzle_point, puzzle_point_05, puzzle_point_divide2;
+    Point puzzle_point, puzzle_point_05, puzzle_point_divide2;
     Point first_point, second_point, P1, P2, Q1, Q2;
     mpz_class stride_sum; stride_sum = 0;
-    start_point = P_table[range_start];
-    end_point   = P_table[range_end];
-    mpz_class div2;
-    div2 = 2;
+    mpz_class div2; div2 = 2;
+  
     Point point_05 {mpz_class("00000000000000000000003b78ce563f89a0ed9414f5aa28ad0d96d6795f9c63", 16),
                     mpz_class("c0c686408d517dfd67c2367651380d00d126e4229631fd03f8ff35eef1a61e3c", 16)};
+  
     puzzle_point = secp256k1->ParsePublicKeyHex(search_pub);
     puzzle_point_05 = secp256k1->AddPoints(puzzle_point, point_05);
 
