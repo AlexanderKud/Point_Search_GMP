@@ -83,8 +83,10 @@ auto main() -> int {
 
     Point puzzle_point, puzzle_point_05, puzzle_point_divide2;
     Point first_point, second_point, P1, P2, Q1, Q2;
-    mpz_class stride_sum; stride_sum = 0;
-    mpz_class div2; div2 = 2;
+    mpz_class stride_sum, div2;
+    
+    stride_sum = 0;
+    div2 = 2;
   
     Point point_05 {mpz_class("00000000000000000000003b78ce563f89a0ed9414f5aa28ad0d96d6795f9c63", 16),
                     mpz_class("c0c686408d517dfd67c2367651380d00d126e4229631fd03f8ff35eef1a61e3c", 16)};
@@ -121,7 +123,7 @@ auto main() -> int {
     print_time(); cout << "Settings written to file" << endl;
     
     using filter = boost::bloom::filter<std::string, 32>;
-    uint64_t n_elements = uint64_t(pow(2, block_width) * 1.0);
+    uint64_t n_elements = uint64_t(pow(2, block_width));
     double error = 0.0000000001;
     int n_cores = 4;  //actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...) divided by 2
     uint64_t count = uint64_t(pow(2, block_width) / n_cores); // actual cores = 8  8 / 2 = 4 cores for each lambda function
