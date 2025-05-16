@@ -81,15 +81,16 @@ auto main() -> int {
     print_time(); cout << "Block Width: 2^" << block_width << endl;
     print_time(); cout << "Search Pub : " << search_pub << endl;
 
-    Point start_point, end_point, puzzle_point, puzzle_point_05, puzzle_point_divide2;
+    Point puzzle_point, puzzle_point_05, puzzle_point_divide2;
     Point first_point, second_point, P1, P2, Q1, Q2;
-    mpz_class stride_sum; stride_sum = 0;
-    start_point = P_table[range_start];
-    end_point   = P_table[range_end];
-    mpz_class div2;
+    mpz_class stride_sum, div2;
+    
+    stride_sum = 0;
     div2 = 2;
+  
     Point point_05 {mpz_class("00000000000000000000003b78ce563f89a0ed9414f5aa28ad0d96d6795f9c63", 16),
                     mpz_class("c0c686408d517dfd67c2367651380d00d126e4229631fd03f8ff35eef1a61e3c", 16)};
+  
     puzzle_point = secp256k1->ParsePublicKeyHex(search_pub);
     puzzle_point_05 = secp256k1->AddPoints(puzzle_point, point_05);
 
@@ -122,14 +123,14 @@ auto main() -> int {
     print_time(); cout << "Settings written to file" << endl;
     
     using filter = boost::bloom::filter<std::string, 32>;
-    uint64_t n_elements = uint64_t(pow(2, block_width) * 1.0);
+    uint64_t n_elements = uint64_t(pow(2, block_width));
     double error = 0.0000000001;
-    int n_cores = 4;
-    uint64_t count = uint64_t(pow(2, block_width) / n_cores);
-    mpz_class add_key; 
-    add_key = count;
-    Point Add_Point = secp256k1->ScalarMultiplication(add_key);
-    
+    int n_cores = 4;  //actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...) divided by 2
+    uint64_t count = uint64_t(pow(2, block_width) / n_cores); // actual cores = 8  8 / 2 = 4 cores for each lambda function
+    mpz_class add_key;                                        // should be some power of two to evenly divide the space between threads
+    add_key = count;                                          // here we have namely 11 threads( 1-main thread 2,3 - lambda functions
+    Point Add_Point = secp256k1->ScalarMultiplication(add_key);// and 4 threads inside each lambda for process_chunk
+                                                               // execution timings are relative to my pc only yours might be quicker    
     auto bloom_create1 = [&]() {
         string bloomfile = "bloom1.bf";
         Point P = puzzle_point;
