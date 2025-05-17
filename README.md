@@ -3,30 +3,38 @@ Requires C++ Boost Library to be installed. <a href="https://www.boost.org">http
 Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https://gmplib.org</a>
   
 [alexander@alexander-home Point_Search_GMP]$ ./generate_bloom
-[21:02:40] P_table generated
-[21:02:40] Range Start: 51 bits
-[21:02:40] Range End  : 52 bits
-[21:02:40] Block Width: 2^25
-[21:02:40] Search Pub : 033195139de0331d7a5cab602c4471f728f2e3fb97ed82f593d49ed30ec3c0ba85
-[21:02:40] Settings written to file
-[21:02:40] Creating BloomFile2 with 4 threads
-[21:02:40] Creating BloomFile1 with 4 threads
-[21:03:41] Writing BloomFile2 to bloom2.bf
-[21:03:41] Writing BloomFile1 to bloom1.bf
-[21:03:41] Elapsed time: (0)hours (1)minutes (0)seconds
+[08:05:27] P_table generated
+[08:05:27] Range Start: 54 bits
+[08:05:27] Range End  : 55 bits
+[08:05:27] Block Width: 2^26
+[08:05:27] Search Pub : 03a4e2af6d1c191666070fc618106cee91c44936f0082c832692c2043fd8b67d8c
+[08:05:27] Settings written to file
+[08:05:27] Creating BloomFile1 with 4 threads
+[08:05:27] Creating BloomFile2 with 4 threads
+[08:07:27] Writing BloomFile1 to bloom1.bf
+[08:07:27] Writing BloomFile2 to bloom2.bf
+[08:07:27] Elapsed time: (0)hours (2)minutes (0)seconds
 
 
 [alexander@alexander-home Point_Search_GMP]$ ./point_search
-[21:03:44] S_table generated
-[21:03:44] Range Start: 51 bits
-[21:03:44] Range End  : 52 bits
-[21:03:44] Block Width: 2^25
-[21:03:44] Search Pub : 033195139de0331d7a5cab602c4471f728f2e3fb97ed82f593d49ed30ec3c0ba85
-[21:03:44] Loading Bloomfilter bloom1.bf
-[21:03:44] Loading Bloomfilter bloom2.bf
-[21:03:44] Search in progress...
-[21:04:03] BloomFilter Hit bloom2.bf (Odd Point) [Lower Range Half]
-[21:04:03] Privatekey: 000000000000000000000000000000000000000000000000000ad89e2c8e65c3
-[21:04:03] Elapsed time: (0)hours (0)minutes (18)seconds
+[08:07:32] S_table generated
+[08:07:32] Range Start: 54 bits
+[08:07:32] Range End  : 55 bits
+[08:07:32] Block Width: 2^26
+[08:07:32] Search Pub : 03a4e2af6d1c191666070fc618106cee91c44936f0082c832692c2043fd8b67d8c
+[08:07:32] Loading Bloomfilter bloom1.bf
+[08:07:32] Loading Bloomfilter bloom2.bf
+[08:07:32] Search in progress...
+[08:08:22] BloomFilter Hit bloom2.bf (Odd Point) [Lower Range Half]
+[08:08:22] Privatekey: 00000000000000000000000000000000000000000000000000546c597195960f
+[08:08:22] Elapsed time: (0)hours (0)minutes (49)seconds
+
+./generate_bloom uses multiple threads to fill in the bloomfilter binary.
+to split the space evenly number of cores needs to be some power of two value.
+actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...) divided by 2
+actual cores = 8  8 / 2 = 4 cores
+
+./point_search is totally scalable and has no such restriction.
+can set any desirable number of cores to use.
 
 </pre>
