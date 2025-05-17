@@ -32,7 +32,8 @@ Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https:/
 
 ./generate_bloom uses multiple threads to fill in the bloomfilter binary.
 to split the space evenly number of cores needs to be some power of two value.
-actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...) divided by 2
+actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...)
+divided by 2
 actual cores = 8  8 / 2 = 4 cores
 
 ./point_search is totally scalable and has no such restriction.
