@@ -32,6 +32,12 @@ void Secp256k1::Init() {
     return;
 }
 
+mpz_class Secp256k1::ModNeg(const mpz_class &y) {
+    mpz_class ret;
+    mpz_sub(ret.get_mpz_t(), EC.p.get_mpz_t(), y.get_mpz_t());
+    return ret;
+}
+
 std::string Secp256k1::GetPublicKeyHex(Point &a) {
     char cpub[68];
     if(mpz_tstbit(a.y.get_mpz_t(), 0) == 0) {

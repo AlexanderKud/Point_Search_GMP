@@ -24,6 +24,7 @@ public:
     Point G;
     Elliptic_Curve EC;
     Secp256k1();
+    mpz_class ModNeg(const mpz_class &y);
     std::string GetPublicKeyHex(Point &p);
     Point ParsePublicKeyHex(std::string pubkey);
     Point DoublePoint(Point &p);
