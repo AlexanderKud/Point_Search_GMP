@@ -179,3 +179,31 @@ Point Secp256k1::PointDivision(Point &a, mpz_class sc) {
     A = PointMultiplication(a, div_s);
     return A;
 }
+
+IntGroup::IntGroup(int size) {
+    this->size = size;
+    subp = (mpz_class*)malloc(size * sizeof(mpz_class));
+}
+
+IntGroup::~IntGroup() {
+    free(subp);
+}
+
+void IntGroup::ModInv(mpz_class *ints) { // GMP library takes mpz_class array as input directly
+    mpz_class newValue, inverse;         // and modifies it directly because no const specifier in front of it.
+    subp[0] = ints[0];
+    for (int i = 1; i < size; i++){
+        mpz_mul(subp[i].get_mpz_t(), subp[i - 1].get_mpz_t(), ints[i].get_mpz_t());
+        mpz_mod(subp[i].get_mpz_t(), subp[i].get_mpz_t(), P.get_mpz_t());
+    }
+    inverse = subp[size - 1];
+    mpz_invert(inverse.get_mpz_t(), inverse.get_mpz_t(), P.get_mpz_t());
+    for(int i = size - 1; i > 0; i--) {
+        mpz_mul(newValue.get_mpz_t(), subp[i - 1].get_mpz_t(), inverse.get_mpz_t());
+        mpz_mod(newValue.get_mpz_t(), newValue.get_mpz_t(), P.get_mpz_t());
+        mpz_mul(inverse.get_mpz_t(), inverse.get_mpz_t(), ints[i].get_mpz_t());
+        mpz_mod(inverse.get_mpz_t(), inverse.get_mpz_t(), P.get_mpz_t());
+        ints[i] = newValue;
+    }
+    ints[0] = inverse;
+}

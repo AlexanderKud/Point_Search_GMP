@@ -35,4 +35,15 @@ public:
     void Init();
 };
 
+class IntGroup { // Batch Inversion Class and logic taken from JLP IntGroup.h/.cpp 
+private:         // and with minor modifications adapted for GMP library.
+    int size;
+    mpz_class *subp;
+    mpz_class P = mpz_class("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10);
+public:
+    IntGroup(int size);
+    ~IntGroup();
+    void ModInv(mpz_class *ints);
+};
+
 #endif
