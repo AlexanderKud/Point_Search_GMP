@@ -41,6 +41,19 @@ Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https:/
 [23:10:02] Privatekey: 0000000000000000000000000000000000000000000000000069fb4a3e8205d5
 [23:10:02] Elapsed time: (0)hours (0)minutes (31)seconds
 
+[alexander@alexander-home Point_Search_GMP]$ ./point_search_batch
+[01:24:52] S_table generated
+[01:24:52] Range Start: 54 bits
+[01:24:52] Range End  : 55 bits
+[01:24:52] Block Width: 2^26
+[01:24:52] Search Pub : 03a5f9c69423c70c64fe162af3936014c1346978dccd681fa06a18edaa24e3f7d5
+[01:24:52] Loading Bloomfilter bloom1.bf
+[01:24:52] Loading Bloomfilter bloom2.bf
+[01:24:53] Search in progress...
+[01:25:08] BloomFilter Hit bloom2.bf (Odd Point) [Higher Range Half]
+[01:25:08] Privatekey: 0000000000000000000000000000000000000000000000000069fb4a3e8205d5
+[01:25:08] Elapsed time: (0)hours (0)minutes (15)seconds
+
 
 ./generate_bloom uses multiple threads and to fill in the bloomfilter binary.
 ./generate_bloom_batch uses batch inversion.
@@ -50,6 +63,7 @@ divided by 2
 actual cores = 8  8 / 2 = 4 cores
 
 ./point_search is totally scalable and has no such restriction.
+./point_search_batch uses batch inversion.
 can set any desirable number of cores to use but divided by 2.
 because we have two search paths : addition and subtraction.
 setting cores beyond hardware concurrency will not yield any additional performance.
