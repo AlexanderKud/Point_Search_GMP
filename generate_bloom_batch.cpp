@@ -184,13 +184,13 @@ auto main() -> int {
             myThreads[i] = std::thread(process_chunk, starting_points[i]);
         }
     
-        print_time(); cout << "Creating BloomFile1 with " << n_cores << " threads" << '\n';
+        print_time(); cout << "Creating bloom1 image with " << n_cores << " threads" << '\n';
 
         for (int i = 0; i < n_cores; i++) {
             myThreads[i].join();
         }
 
-        print_time(); cout << "Writing BloomFile1 to bloom1.bf" << '\n';
+        print_time(); cout << "Writing bloom1 image to bloom1.bf" << '\n';
         std::ofstream out(bloomfile, std::ios::binary);
         std::size_t c1= bf.capacity();
         out.write((const char*) &c1, sizeof(c1)); // save capacity (bits)
@@ -266,13 +266,13 @@ auto main() -> int {
             myThreads[i] = std::thread(process_chunk, starting_points[i]);
         }
     
-        print_time(); cout << "Creating BloomFile2 with " << n_cores << " threads" << '\n';
+        print_time(); cout << "Creating bloom2 image with " << n_cores << " threads" << '\n';
 
         for (int i = 0; i < n_cores; i++) {
             myThreads[i].join();
         }
 
-        print_time(); cout << "Writing BloomFile2 to bloom2.bf" << '\n'; 
+        print_time(); cout << "Writing bloom2 image to bloom2.bf" << '\n'; 
         std::ofstream out(bloomfile, std::ios::binary);
         std::size_t c1= bf.capacity();
         out.write((const char*) &c1, sizeof(c1)); // save capacity (bits)

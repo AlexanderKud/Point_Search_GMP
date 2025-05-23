@@ -22,10 +22,10 @@ Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https:/
 [23:10:09] Block Width: 2^26
 [23:10:09] Search Pub : 03a5f9c69423c70c64fe162af3936014c1346978dccd681fa06a18edaa24e3f7d5
 [23:10:09] Settings written to file
-[23:10:09] Creating BloomFile2 with 4 threads
-[23:10:09] Creating BloomFile1 with 4 threads
-[23:11:24] Writing BloomFile1 to bloom1.bf
-[23:11:25] Writing BloomFile2 to bloom2.bf
+[23:10:09] Creating bloom2 image with 4 threads
+[23:10:09] Creating bloom1 image with 4 threads
+[23:11:24] Writing bloom1 image to bloom1.bf
+[23:11:25] Writing bloom2 image to bloom2.bf
 [23:11:25] Elapsed time: (0)hours (1)minutes (16)seconds
 
 [alexander@alexander-home Point_Search_GMP]$ ./point_search
