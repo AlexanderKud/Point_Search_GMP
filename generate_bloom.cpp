@@ -4,6 +4,7 @@
 #include <filesystem>
 #include <vector>
 #include <thread>
+#include <mutex>
 #include <gmpxx.h>
 #include <gmp.h>
 
@@ -113,12 +114,15 @@ auto main() -> int {
 
         filter bf(n_elements, error);
         
-        auto process_chunk = [&](Point start_point) {            
+        auto process_chunk = [&](Point start_point) {
+            mutex mtx;            
             Point current = start_point;
+            mtx.lock(); // mutex locking for safe insertion
             for (uint64_t i = 0; i < count; i++) {
                 bf.insert(secp256k1->GetPublicKeyHex(current));
                 current = secp256k1->AddPoints(current, secp256k1->G);
             }
+            mtx.unlock(); // mutex unlocking
         };
         
         std::thread myThreads[n_cores];
@@ -152,12 +156,15 @@ auto main() -> int {
         
         filter bf(n_elements, error);
         
-        auto process_chunk = [&](Point start_point) {            
+        auto process_chunk = [&](Point start_point) {
+            mutex mtx;          
             Point current = start_point;
+            mtx.lock(); // mutex locking for safe insertion
             for (uint64_t i = 0; i < count; i++) {
                 bf.insert(secp256k1->GetPublicKeyHex(current));
                 current = secp256k1->AddPoints(current, secp256k1->G);
             }
+            mtx.unlock(); // mutex unlocking
         };
         
         std::thread myThreads[n_cores];
