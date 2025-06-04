@@ -41,6 +41,7 @@ Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https:/
 [01:25:08] Privatekey: 0000000000000000000000000000000000000000000000000069fb4a3e8205d5
 [01:25:08] Elapsed time: (0)hours (0)minutes (15)seconds
 
+Special thanks to kTimesG(<a href="https://github.com/kTimesG">https://github.com/kTimesG</a>) for mutex use improvement proposal.
 
 ./generate_bloom uses multiple threads and batch inversion to fill in the bloomfilter binary.
 to split the space evenly, number of cores needs to be some power of two value.
