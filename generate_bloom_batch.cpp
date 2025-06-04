@@ -118,6 +118,9 @@ auto main() -> int {
     
     int nbBatch = count / POINTS_BATCH_SIZE; // number of batches for the single thread
 
+    mutex mtx1;
+    mutex mtx2;
+
     auto bloom_create1 = [&]() {
         string bloomfile = "bloom1.bf";
         Point P = puzzle_point;
@@ -131,7 +134,6 @@ auto main() -> int {
         
         auto process_chunk = [&](Point start_point) { // function for a thread
             
-            mutex mtx;
             mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             IntGroup modGroup(POINTS_BATCH_SIZE); // group of deltaX (x1 - x2) set for batch inversion
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
@@ -170,13 +172,13 @@ auto main() -> int {
 
                 }
                 
-                mtx.lock(); // mutex locking batch for safe insertion
+                mtx1.lock(); // mutex locking batch for safe insertion
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // inserting all batch points into the bloomfilter
                     BloomP.x = pointBatchX[i];
                     BloomP.y = pointBatchY[i];
                     bf.insert(secp256k1->GetPublicKeyHex(BloomP));
                 }
-                mtx.unlock(); // mutex unlocking
+                mtx1.unlock(); // mutex unlocking
                 
                 startPoint.x = pointBatchX[POINTS_BATCH_SIZE - 1]; // setting the new startPoint for the next batch iteration
                 startPoint.y = pointBatchY[POINTS_BATCH_SIZE - 1];
@@ -216,7 +218,6 @@ auto main() -> int {
         
         auto process_chunk = [&](Point start_point) { // function for a thread
             
-            mutex mtx;
             mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             IntGroup modGroup(POINTS_BATCH_SIZE); // group of deltaX (x1 - x2) set for batch inversion
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
@@ -255,13 +256,13 @@ auto main() -> int {
 
                 }
                 
-                mtx.lock(); // mutex locking batch for safe insertion
+                mtx2.lock(); // mutex locking batch for safe insertion
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // inserting all batch points into the bloomfilter
                     BloomP.x = pointBatchX[i];
                     BloomP.y = pointBatchY[i];
                     bf.insert(secp256k1->GetPublicKeyHex(BloomP));
                 }
-                mtx.unlock(); // mutex unlocking
+                mtx2.unlock(); // mutex unlocking
                 
                 startPoint.x = pointBatchX[POINTS_BATCH_SIZE - 1]; // setting the new startPoint for the next batch iteration
                 startPoint.y = pointBatchY[POINTS_BATCH_SIZE - 1];
