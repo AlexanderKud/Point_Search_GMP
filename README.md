@@ -1,19 +1,6 @@
 <pre>
 Requires C++ Boost Library to be installed. <a href="https://www.boost.org">https://www.boost.org</a>
 Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https://gmplib.org</a>
-  
-[alexander@alexander-home Point_Search_GMP]$ ./generate_bloom
-[23:06:16] P_table generated
-[23:06:16] Range Start: 54 bits
-[23:06:16] Range End  : 55 bits
-[23:06:16] Block Width: 2^26
-[23:06:16] Search Pub : 03a5f9c69423c70c64fe162af3936014c1346978dccd681fa06a18edaa24e3f7d5
-[23:06:16] Settings written to file
-[23:06:16] Creating BloomFile2 with 4 threads
-[23:06:16] Creating BloomFile1 with 4 threads
-[23:08:30] Writing BloomFile1 to bloom1.bf
-[23:08:31] Writing BloomFile2 to bloom2.bf
-[23:08:31] Elapsed time: (0)hours (2)minutes (15)seconds
 
 [alexander@alexander-home Point_Search_GMP]$ ./generate_bloom_batch
 [23:10:09] P_table generated
