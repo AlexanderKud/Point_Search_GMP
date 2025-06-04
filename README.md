@@ -2,7 +2,7 @@
 Requires C++ Boost Library to be installed. <a href="https://www.boost.org">https://www.boost.org</a>
 Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https://gmplib.org</a>
 
-[alexander@alexander-home Point_Search_GMP]$ ./generate_bloom_batch
+[alexander@alexander-home Point_Search_GMP]$ ./generate_bloom
 [23:10:09] P_table generated
 [23:10:09] Range Start: 54 bits
 [23:10:09] Range End  : 55 bits
