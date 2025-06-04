@@ -42,8 +42,7 @@ Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https:/
 [01:25:08] Elapsed time: (0)hours (0)minutes (15)seconds
 
 
-./generate_bloom uses multiple threads and to fill in the bloomfilter binary.
-./generate_bloom_batch uses batch inversion.
+./generate_bloom uses multiple threads and batch inversion to fill in the bloomfilter binary.
 to split the space evenly, number of cores needs to be some power of two value.
 actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...)
 divided by 2
