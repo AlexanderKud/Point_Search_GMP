@@ -102,7 +102,10 @@ auto main() -> int {
     mpz_class add_key;                                        // should be some power of two to evenly divide the space between threads
     add_key = count;                                          // here we have namely 11 threads( 1-main thread 2,3 - lambda functions
     Point Add_Point = secp256k1->ScalarMultiplication(add_key);// and 4 threads inside each lambda for process_chunk
-                                                               // execution timings are relative to my pc only yours might be quicker    
+                                                            // execution timings are relative to my pc only yours might be quicker 
+    mutex mtx1;
+    mutex mtx2;
+    
     auto bloom_create1 = [&]() {
         string bloomfile = "bloom1.bf";
         Point P = puzzle_point;
@@ -115,14 +118,14 @@ auto main() -> int {
         filter bf(n_elements, error);
         
         auto process_chunk = [&](Point start_point) {
-            mutex mtx;            
+           
             Point current = start_point;
-            mtx.lock(); // mutex locking for safe insertion
+            mtx1.lock(); // mutex locking for safe insertion
             for (uint64_t i = 0; i < count; i++) {
                 bf.insert(secp256k1->GetPublicKeyHex(current));
                 current = secp256k1->AddPoints(current, secp256k1->G);
             }
-            mtx.unlock(); // mutex unlocking
+            mtx2.unlock(); // mutex unlocking
         };
         
         std::thread myThreads[n_cores];
@@ -157,14 +160,14 @@ auto main() -> int {
         filter bf(n_elements, error);
         
         auto process_chunk = [&](Point start_point) {
-            mutex mtx;          
+         
             Point current = start_point;
-            mtx.lock(); // mutex locking for safe insertion
+            mtx2.lock(); // mutex locking for safe insertion
             for (uint64_t i = 0; i < count; i++) {
                 bf.insert(secp256k1->GetPublicKeyHex(current));
                 current = secp256k1->AddPoints(current, secp256k1->G);
             }
-            mtx.unlock(); // mutex unlocking
+            mtx2.unlock(); // mutex unlocking
         };
         
         std::thread myThreads[n_cores];
