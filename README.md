@@ -21,7 +21,7 @@ Final Update will implement entire set of batch point addition logic from JLP BS
 [17:13:18] Creating bloom2 image with 4 threads
 [17:15:12] Writing bloom1 image to bloom1.bf
 [17:15:13] Writing bloom2 image to bloom2.bf
-[17:15:13] Elapsed time: (0)hours (1)minutes (54)seconds
+[17:15:13] Elapsed time: (0)hours (1)minutes (48)seconds
 
 
 [alexander@alexander-home Point_Search_GMP]$ ./point_search
@@ -35,7 +35,7 @@ Final Update will implement entire set of batch point addition logic from JLP BS
 [17:15:28] Search in progress...
 [17:15:42] BloomFilter Hit bloom2.bf (Odd Point) [Higher Range Half]
 [17:15:42] Privatekey: 0000000000000000000000000000000000000000000000000069fb4a3e8205d5
-[17:15:42] Elapsed time: (0)hours (0)minutes (13)seconds
+[17:15:42] Elapsed time: (0)hours (0)minutes (12)seconds
 
 ./generate_bloom uses multiple threads and batch inversion to fill in the bloomfilter binary.
 to split the space evenly, number of cores needs to be some power of two value.
