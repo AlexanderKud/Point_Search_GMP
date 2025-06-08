@@ -7,6 +7,7 @@
 #include <mutex>
 #include <gmpxx.h>
 #include <gmp.h>
+#include <omp.h>
 
 #include "secp256k1/secp256k1.h"
 #include "bloom/filter.hpp"
@@ -17,6 +18,9 @@ namespace fs = filesystem;
 
 static constexpr int POINTS_BATCH_SIZE = 1024; // Batch addition with batch inversion(one ModInv for the entire group) using IntGroup class
 const mpz_class Fp = mpz_class("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10);
+
+static omp_lock_t lock1;
+static omp_lock_t lock2;
 
 auto main() -> int {
     
@@ -117,9 +121,9 @@ auto main() -> int {
     }
     
     int nbBatch = count / POINTS_BATCH_SIZE; // number of batches for the single thread
-
-    mutex mtx1;
-    mutex mtx2;
+    
+    omp_init_lock(&lock1);
+    omp_init_lock(&lock2);
 
     auto bloom_create1 = [&]() {
         string bloomfile = "bloom1.bf";
@@ -140,7 +144,9 @@ auto main() -> int {
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
                       
             Point startPoint = start_point; // start point
-            bf.insert(secp256k1->GetPublicKeyHex(startPoint)); // we insert it instantly into the bloomfilter
+            omp_set_lock(&lock1);
+            bf.insert(secp256k1->GetXHex(startPoint.x));
+            omp_unset_lock(&lock1);
 
             Point BloomP; // point for insertion of the batch into the bloomfilter
             mpz_class deltaY, slope, slopeSquared; // values to store the results of points addition formula
@@ -171,14 +177,12 @@ auto main() -> int {
                     mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 }
-                
-                mtx1.lock(); // mutex locking batch for safe insertion
+
+                omp_set_lock(&lock1);
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // inserting all batch points into the bloomfilter
-                    BloomP.x = pointBatchX[i];
-                    BloomP.y = pointBatchY[i];
-                    bf.insert(secp256k1->GetPublicKeyHex(BloomP));
+                    bf.insert(secp256k1->GetXHex(pointBatchX[i]));
                 }
-                mtx1.unlock(); // mutex unlocking
+                omp_unset_lock(&lock1);
                 
                 startPoint.x = pointBatchX[POINTS_BATCH_SIZE - 1]; // setting the new startPoint for the next batch iteration
                 startPoint.y = pointBatchY[POINTS_BATCH_SIZE - 1];
@@ -195,6 +199,8 @@ auto main() -> int {
         for (int i = 0; i < n_cores; i++) {
             myThreads[i].join();
         }
+        
+        omp_destroy_lock(&lock1);
 
         print_time(); cout << "Writing bloom1 image to bloom1.bf" << '\n';
         std::ofstream out(bloomfile, std::ios::binary);
@@ -224,7 +230,9 @@ auto main() -> int {
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
                       
             Point startPoint = start_point; // start point
-            bf.insert(secp256k1->GetPublicKeyHex(startPoint)); // we insert it instantly into the bloomfilter
+            omp_set_lock(&lock2);
+            bf.insert(secp256k1->GetXHex(startPoint.x));
+            omp_unset_lock(&lock2);
 
             Point BloomP; // point for insertion of the batch into the bloomfilter
             mpz_class deltaY, slope, slopeSquared; // values to store the results of points addition formula
@@ -255,14 +263,12 @@ auto main() -> int {
                     mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 }
-                
-                mtx2.lock(); // mutex locking batch for safe insertion
+
+                omp_set_lock(&lock2);
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // inserting all batch points into the bloomfilter
-                    BloomP.x = pointBatchX[i];
-                    BloomP.y = pointBatchY[i];
-                    bf.insert(secp256k1->GetPublicKeyHex(BloomP));
+                    bf.insert(secp256k1->GetXHex(pointBatchX[i]));
                 }
-                mtx2.unlock(); // mutex unlocking
+                omp_unset_lock(&lock2);
                 
                 startPoint.x = pointBatchX[POINTS_BATCH_SIZE - 1]; // setting the new startPoint for the next batch iteration
                 startPoint.y = pointBatchY[POINTS_BATCH_SIZE - 1];
@@ -279,7 +285,9 @@ auto main() -> int {
         for (int i = 0; i < n_cores; i++) {
             myThreads[i].join();
         }
-
+        
+        omp_destroy_lock(&lock2);
+        
         print_time(); cout << "Writing bloom2 image to bloom2.bf" << '\n'; 
         std::ofstream out(bloomfile, std::ios::binary);
         std::size_t c1= bf.capacity();

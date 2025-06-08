@@ -26,6 +26,7 @@ public:
     Secp256k1();
     mpz_class ModNeg(const mpz_class &y);
     std::string GetPublicKeyHex(Point &p);
+    std::string GetXHex(const mpz_class &x);
     Point ParsePublicKeyHex(std::string pubkey);
     Point DoublePoint(Point &p);
     Point AddPoints(Point &a, Point &b);
