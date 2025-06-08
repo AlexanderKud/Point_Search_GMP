@@ -49,9 +49,7 @@ std::string Secp256k1::GetPublicKeyHex(Point &a) {
 }
 
 std::string Secp256k1::GetXHex(const mpz_class &x) {
-    char xC[66];
-    gmp_snprintf(xC, 65, "%0.64Zx", x.get_mpz_t());
-    return std::string(xC);
+    return x.get_str(16);
 }
 
 Point Secp256k1::ParsePublicKeyHex(std::string pubkey) {
