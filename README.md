@@ -39,7 +39,6 @@ divided by 2
 actual cores = 8  8 / 2 = 4 cores
 
 ./point_search is totally scalable and has no such restriction.
-./point_search_batch uses batch inversion.
 can set any desirable number of cores to use but divided by 2.
 because we have two search paths : addition and subtraction.
 setting cores beyond hardware concurrency will not yield any additional performance.
