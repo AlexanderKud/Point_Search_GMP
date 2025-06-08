@@ -37,8 +37,6 @@ Final Update will implement entire set of batch point addition logic from JLP BS
 [17:15:42] Privatekey: 0000000000000000000000000000000000000000000000000069fb4a3e8205d5
 [17:15:42] Elapsed time: (0)hours (0)minutes (13)seconds
 
-Special thanks to kTimesG(<a href="https://github.com/kTimesG">https://github.com/kTimesG</a>) for mutex use improvement proposal.
-
 ./generate_bloom uses multiple threads and batch inversion to fill in the bloomfilter binary.
 to split the space evenly, number of cores needs to be some power of two value.
 actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...)
