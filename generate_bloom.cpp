@@ -127,7 +127,7 @@ auto main() -> int {
     auto bloom_create1 = [&]() {
         
         string bloomfile = "bloom1.bf";
-        Point P = puzzle_point;
+        Point P = secp256k1->SubtractPoints(puzzle_point, secp256k1->G);
         vector<Point> starting_points;
         for (int i = 0; i < n_cores; i++) {
             starting_points.push_back(P);
@@ -142,15 +142,10 @@ auto main() -> int {
             mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
+            mpz_class deltaY, slope; // values to store the results of points addition formula
                       
             Point startPoint = start_point; // start point
-            omp_set_lock(&lock1);
-            bf.insert(secp256k1->GetXHex(startPoint.x));
-            omp_unset_lock(&lock1);
-
-            Point BloomP; // point for insertion of the batch into the bloomfilter
-            mpz_class deltaY, slope; // values to store the results of points addition formula
-            
+    
             for (int i = 0; i < nbBatch; i++) {
                 
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // we compute (x1 - x2) for each entry of the entire batch
@@ -214,7 +209,7 @@ auto main() -> int {
     auto bloom_create2 = [&]() {
         
         string bloomfile = "bloom2.bf";
-        Point P = puzzle_point_05;
+        Point P = secp256k1->SubtractPoints(puzzle_point_05, secp256k1->G);
         vector<Point> starting_points;
         for (int i = 0; i < n_cores; i++) {
             starting_points.push_back(P);
@@ -229,14 +224,9 @@ auto main() -> int {
             mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
+            mpz_class deltaY, slope; // values to store the results of points addition formula
                       
             Point startPoint = start_point; // start point
-            omp_set_lock(&lock2);
-            bf.insert(secp256k1->GetXHex(startPoint.x));
-            omp_unset_lock(&lock2);
-
-            Point BloomP; // point for insertion of the batch into the bloomfilter
-            mpz_class deltaY, slope; // values to store the results of points addition formula
             
             for (int i = 0; i < nbBatch; i++) {
                 
