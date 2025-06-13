@@ -48,10 +48,9 @@ auto main() -> int {
     mpz_class pre_calc_sum; // precalculated sum for private key recovering
     mpz_add(pre_calc_sum.get_mpz_t(), S_table[range_start - 1].get_mpz_t(), S_table[range_start - 2].get_mpz_t());
     
-    string bloomfile1 = "bloom1.bf"; // bloomfilter stuff
-    string bloomfile2 = "bloom2.bf";
     using filter = boost::bloom::filter<std::string, 32>;
     
+    string bloomfile1 = "bloom1.bf";
     print_time(); cout << "Loading Bloomfilter bloom1.bf" << endl;
     filter bf1;
     std::ifstream in1(bloomfile1, std::ios::binary);
@@ -62,7 +61,7 @@ auto main() -> int {
     in1.read((char*) s1.data(), s1.size()); // load array
     in1.close();
 
-    
+    string bloomfile2 = "bloom2.bf";
     print_time(); cout << "Loading Bloomfilter bloom2.bf" << endl;
     filter bf2;
     std::ifstream in2(bloomfile2, std::ios::binary);
@@ -97,8 +96,8 @@ auto main() -> int {
         
         stride = pow(2, block_width);
         stride_point = secp256k1->ScalarMultiplication(stride);
-        //start splitting the search initiative according to the chosen number of cpu cores
-        int n_cores = cpuCores;
+        
+        int n_cores = cpuCores; //start splitting the search according to the chosen number of cpu cores
         
         mpz_class offset_Step, vector_Num;
         mpz_fdiv_q_ui(offset_Step.get_mpz_t(), S_table[range_start - 2].get_mpz_t(),  n_cores);
@@ -138,21 +137,19 @@ auto main() -> int {
         auto scalable_addition_search = [&](Point starting_Point, int threadIdx, mpz_class offset, mpz_class stride_Sum) {
 
             Point startPoint = starting_Point;
-            Point P;
+            Point BloomP; // point for insertion of the batch into the bloomfilter
             mpz_class stride_sum = stride_Sum;
-            string cpub, xc, xc1, xc2;
+            string cpub, xc, xc_sub;
             int index, count;
             vector<uint64_t> privkey_num;
             uint64_t steps;
             mpz_class Int_steps, Int_temp, privkey;
-
-            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
+            
             IntGroup modGroup(POINTS_BATCH_SIZE); // group of deltaX (x1 - x2) set for batch inversion
+            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
-
-            Point BloomP; // point for insertion of the batch into the bloomfilter
-            mpz_class deltaY, slope, slopeSquared; // values to store the results of points addition formula
+            mpz_class deltaY, slope; // values to store the results of points addition formula
 
             mpz_class batch_stride, batch_index;
             mpz_mul_ui(batch_stride.get_mpz_t(), stride.get_mpz_t(), POINTS_BATCH_SIZE);
@@ -172,8 +169,8 @@ auto main() -> int {
                     mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
                     mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
 
-                    mpz_mul(slopeSquared.get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
-                    mpz_sub(pointBatchX[i].get_mpz_t(), slopeSquared.get_mpz_t(), startPoint.x.get_mpz_t());
+                    mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                    mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
         
@@ -194,20 +191,19 @@ auto main() -> int {
 
                         BloomP.x = pointBatchX[i];
                         BloomP.y = pointBatchY[i];
-                        P = BloomP;
 
                         privkey_num.clear();
                         index = 0;
                         for (auto& p : pow10_points) { // getting the index of the element in the bloomfilter
                             count = 0;
-                            xc1 = secp256k1->GetXHex(P.x);
-                            while (bf1.may_contain(xc1)) {
-                                P = secp256k1->SubtractPoints(P, p);
-                                xc1 = secp256k1->GetXHex(P.x);
+                            xc_sub = secp256k1->GetXHex(BloomP.x);
+                            while (bf1.may_contain(xc_sub)) {
+                                BloomP = secp256k1->SubtractPoints(BloomP, p);
+                                xc_sub = secp256k1->GetXHex(BloomP.x);
                                 count += 1;
                             }
                             privkey_num.push_back(pow10_nums[index] * (count - 1));
-                            P = secp256k1->AddPoints(P, p);
+                            BloomP = secp256k1->AddPoints(BloomP, p);
                             index += 1;
                         }
 
@@ -249,20 +245,19 @@ auto main() -> int {
 
                         BloomP.x = pointBatchX[i];
                         BloomP.y = pointBatchY[i];
-                        P = BloomP;
 
                         privkey_num.clear();
                         index = 0;
                         for (auto& p : pow10_points) {
                             count = 0;
-                            xc2 = secp256k1->GetXHex(P.x);
-                            while (bf2.may_contain(xc2)) {
-                                P = secp256k1->SubtractPoints(P, p);
-                                xc2 = secp256k1->GetXHex(P.x);
+                            xc_sub = secp256k1->GetXHex(BloomP.x);
+                            while (bf2.may_contain(xc_sub)) {
+                                BloomP = secp256k1->SubtractPoints(BloomP, p);
+                                xc_sub = secp256k1->GetXHex(BloomP.x);
                                 count += 1;
                             }
                             privkey_num.push_back(pow10_nums[index] * (count - 1));
-                            P = secp256k1->AddPoints(P, p);
+                            BloomP = secp256k1->AddPoints(BloomP, p);
                             index += 1;
                         }
 
@@ -391,21 +386,19 @@ auto main() -> int {
         auto scalable_subtraction_search = [&](Point starting_Point, int threadIdx, mpz_class offset, mpz_class stride_Sum) {
 
             Point startPoint = starting_Point;
-            Point P;
+            Point BloomP; // point for insertion of the batch into the bloomfilter
             mpz_class stride_sum = stride_Sum;
-            string cpub, xc, xc1, xc2;
+            string cpub, xc, xc_sub;
             int index, count;
             vector<uint64_t> privkey_num;
             uint64_t steps;
             mpz_class Int_steps, Int_temp, privkey;
-
-            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
+            
             IntGroup modGroup(POINTS_BATCH_SIZE); // group of deltaX (x1 - x2) set for batch inversion
+            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
-
-            Point BloomP; // point for insertion of the batch into the bloomfilter
-            mpz_class deltaY, slope, slopeSquared; // values to store the results of points addition formula
+            mpz_class deltaY, slope; // values to store the results of points addition formula
 
             mpz_class batch_stride, batch_index;
             mpz_mul_ui(batch_stride.get_mpz_t(), stride.get_mpz_t(), POINTS_BATCH_SIZE);
@@ -425,8 +418,8 @@ auto main() -> int {
                     mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
                     mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
 
-                    mpz_mul(slopeSquared.get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
-                    mpz_sub(pointBatchX[i].get_mpz_t(), slopeSquared.get_mpz_t(), startPoint.x.get_mpz_t());
+                    mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                    mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
         
@@ -447,20 +440,19 @@ auto main() -> int {
 
                         BloomP.x = pointBatchX[i];
                         BloomP.y = pointBatchY[i];
-                        P = BloomP;
 
                         privkey_num.clear();
                         index = 0;
                         for (auto& p : pow10_points) {
                             count = 0;
-                            xc1 = secp256k1->GetXHex(P.x);
-                            while (bf1.may_contain(xc1)) {
-                                P = secp256k1->SubtractPoints(P, p);
-                                xc1 = secp256k1->GetXHex(P.x);
+                            xc_sub = secp256k1->GetXHex(BloomP.x);
+                            while (bf1.may_contain(xc_sub)) {
+                                BloomP = secp256k1->SubtractPoints(BloomP, p);
+                                xc_sub = secp256k1->GetXHex(BloomP.x);
                                 count += 1;
                             }
                             privkey_num.push_back(pow10_nums[index] * (count - 1));
-                            P = secp256k1->AddPoints(P, p);
+                            BloomP = secp256k1->AddPoints(BloomP, p);
                             index += 1;
                         }
 
@@ -502,20 +494,19 @@ auto main() -> int {
 
                         BloomP.x = pointBatchX[i];
                         BloomP.y = pointBatchY[i];
-                        P = BloomP;
 
                         privkey_num.clear();
                         index = 0;
                         for (auto& p : pow10_points) {
                             count = 0;
-                            xc2 = secp256k1->GetXHex(P.x);
-                            while (bf2.may_contain(xc2)) {
-                                P = secp256k1->SubtractPoints(P, p);
-                                xc2 = secp256k1->GetXHex(P.x);
+                            xc_sub = secp256k1->GetXHex(BloomP.x);
+                            while (bf2.may_contain(xc_sub)) {
+                                BloomP = secp256k1->SubtractPoints(BloomP, p);
+                                xc_sub = secp256k1->GetXHex(BloomP.x);
                                 count += 1;
                             }
                             privkey_num.push_back(pow10_nums[index] * (count - 1));
-                            P = secp256k1->AddPoints(P, p);
+                            BloomP = secp256k1->AddPoints(BloomP, p);
                             index += 1;
                         }
 

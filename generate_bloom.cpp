@@ -4,7 +4,6 @@
 #include <filesystem>
 #include <vector>
 #include <thread>
-#include <mutex>
 #include <gmpxx.h>
 #include <gmp.h>
 #include <omp.h>
@@ -121,11 +120,12 @@ auto main() -> int {
     }
     
     int nbBatch = count / POINTS_BATCH_SIZE; // number of batches for the single thread
-    
+
     omp_init_lock(&lock1);
     omp_init_lock(&lock2);
 
     auto bloom_create1 = [&]() {
+        
         string bloomfile = "bloom1.bf";
         Point P = puzzle_point;
         vector<Point> starting_points;
@@ -138,8 +138,8 @@ auto main() -> int {
         
         auto process_chunk = [&](Point start_point) { // function for a thread
             
-            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             IntGroup modGroup(POINTS_BATCH_SIZE); // group of deltaX (x1 - x2) set for batch inversion
+            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
                       
@@ -149,7 +149,7 @@ auto main() -> int {
             omp_unset_lock(&lock1);
 
             Point BloomP; // point for insertion of the batch into the bloomfilter
-            mpz_class deltaY, slope, slopeSquared; // values to store the results of points addition formula
+            mpz_class deltaY, slope; // values to store the results of points addition formula
             
             for (int i = 0; i < nbBatch; i++) {
                 
@@ -166,8 +166,8 @@ auto main() -> int {
                     mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
                     mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
 
-                    mpz_mul(slopeSquared.get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
-                    mpz_sub(pointBatchX[i].get_mpz_t(), slopeSquared.get_mpz_t(), startPoint.x.get_mpz_t());
+                    mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                    mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
         
@@ -212,6 +212,7 @@ auto main() -> int {
     };
 
     auto bloom_create2 = [&]() {
+        
         string bloomfile = "bloom2.bf";
         Point P = puzzle_point_05;
         vector<Point> starting_points;
@@ -224,8 +225,8 @@ auto main() -> int {
         
         auto process_chunk = [&](Point start_point) { // function for a thread
             
-            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             IntGroup modGroup(POINTS_BATCH_SIZE); // group of deltaX (x1 - x2) set for batch inversion
+            mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
                       
@@ -235,7 +236,7 @@ auto main() -> int {
             omp_unset_lock(&lock2);
 
             Point BloomP; // point for insertion of the batch into the bloomfilter
-            mpz_class deltaY, slope, slopeSquared; // values to store the results of points addition formula
+            mpz_class deltaY, slope; // values to store the results of points addition formula
             
             for (int i = 0; i < nbBatch; i++) {
                 
@@ -252,8 +253,8 @@ auto main() -> int {
                     mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
                     mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
 
-                    mpz_mul(slopeSquared.get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
-                    mpz_sub(pointBatchX[i].get_mpz_t(), slopeSquared.get_mpz_t(), startPoint.x.get_mpz_t());
+                    mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                    mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
         
