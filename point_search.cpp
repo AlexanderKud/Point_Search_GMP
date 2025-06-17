@@ -97,21 +97,20 @@ auto main() -> int {
         stride = pow(2, block_width);
         stride_point = secp256k1->ScalarMultiplication(stride);
         
-        int n_cores = cpuCores; //start splitting the search according to the chosen number of cpu cores
-        
+        //start splitting the search according to the chosen number of cpu cores
         mpz_class offset_Step, vector_Num;
-        mpz_fdiv_q_ui(offset_Step.get_mpz_t(), S_table[range_start - 2].get_mpz_t(),  n_cores);
+        mpz_fdiv_q_ui(offset_Step.get_mpz_t(), S_table[range_start - 2].get_mpz_t(),  cpuCores);
         
         vector_Num = 0;
         vector<mpz_class> offset_Nums;
-        for (int i = 0; i < n_cores; i++) {
+        for (int i = 0; i < cpuCores; i++) {
             offset_Nums.push_back(vector_Num);
             mpz_add(vector_Num.get_mpz_t(), vector_Num.get_mpz_t(), offset_Step.get_mpz_t());
         }
         
         vector<Point> offset_Points;
         offset_Points.push_back(secp256k1->G);
-        for (int i = 1; i < n_cores; i++) {
+        for (int i = 1; i < cpuCores; i++) {
             offset_Points.push_back(secp256k1->ScalarMultiplication(offset_Nums[i]));
         }
 
@@ -119,7 +118,7 @@ auto main() -> int {
         Point vector_Point(start_point);
         starting_Points.push_back(vector_Point);
 
-        for (int i = 1; i < n_cores; i++) {
+        for (int i = 1; i < cpuCores; i++) {
             vector_Point = secp256k1->AddPoints(start_point, offset_Points[i]);
             starting_Points.push_back(vector_Point);
         }
@@ -149,7 +148,8 @@ auto main() -> int {
             mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
-            mpz_class deltaY, slope; // values to store the results of points addition formula
+            mpz_class deltaY; // values to store the results of points addition formula
+            mpz_class slope[POINTS_BATCH_SIZE];
 
             mpz_class batch_stride, batch_index;
             mpz_mul_ui(batch_stride.get_mpz_t(), stride.get_mpz_t(), POINTS_BATCH_SIZE);
@@ -163,23 +163,33 @@ auto main() -> int {
     
                 modGroup.ModInv(deltaX); // assign array deltaX to modGroup for batch inversion
                 
-                for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // follow points addition formula logic
+                int i;
+                for (i = 0; i < POINTS_BATCH_SIZE - 1; i++) { // follow points addition formula logic
                     
                     mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
-                    mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
-                    mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
+                    mpz_mul(slope[i].get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
+                    mpz_mod(slope[i].get_mpz_t(), slope[i].get_mpz_t(), Fp.get_mpz_t());
 
-                    mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                    mpz_mul(pointBatchX[i].get_mpz_t(), slope[i].get_mpz_t(), slope[i].get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
-        
-                    mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
-                    mpz_mul(pointBatchY[i].get_mpz_t(), slope.get_mpz_t(), pointBatchY[i].get_mpz_t());
-                    mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
-                    mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 }
+                
+                mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
+                mpz_mul(slope[i].get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
+                mpz_mod(slope[i].get_mpz_t(), slope[i].get_mpz_t(), Fp.get_mpz_t());
+
+                mpz_mul(pointBatchX[i].get_mpz_t(), slope[i].get_mpz_t(), slope[i].get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
+                mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
+        
+                mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                mpz_mul(pointBatchY[i].get_mpz_t(), slope[i].get_mpz_t(), pointBatchY[i].get_mpz_t());
+                mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
+                mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
                 
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) {
 
@@ -190,7 +200,10 @@ auto main() -> int {
                         print_time(); cout << "BloomFilter Hit " << bloomfile1 << " (Even Point) [Lower Range Half]" << endl;
 
                         BloomP.x = pointBatchX[i];
-                        BloomP.y = pointBatchY[i];
+                        mpz_sub(BloomP.y.get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                        mpz_mul(BloomP.y.get_mpz_t(), slope[i].get_mpz_t(), BloomP.y.get_mpz_t());
+                        mpz_sub(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), startPoint.y.get_mpz_t());
+                        mpz_mod(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), Fp.get_mpz_t());
 
                         privkey_num.clear();
                         index = 0;
@@ -244,7 +257,10 @@ auto main() -> int {
                         print_time(); cout << "BloomFilter Hit " << bloomfile2 << " (Odd Point) [Lower Range Half]" << endl;
 
                         BloomP.x = pointBatchX[i];
-                        BloomP.y = pointBatchY[i];
+                        mpz_sub(BloomP.y.get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                        mpz_mul(BloomP.y.get_mpz_t(), slope[i].get_mpz_t(), BloomP.y.get_mpz_t());
+                        mpz_sub(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), startPoint.y.get_mpz_t());
+                        mpz_mod(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), Fp.get_mpz_t());
 
                         privkey_num.clear();
                         index = 0;
@@ -318,12 +334,12 @@ auto main() -> int {
             } // while (true) loop end curly brace
         };
 
-        std::thread addition_Threads[n_cores];
-        for (int i = 0; i < n_cores; i++) {
+        std::thread addition_Threads[cpuCores];
+        for (int i = 0; i < cpuCores; i++) {
             addition_Threads[i] = std::thread(scalable_addition_search, starting_Points[i], i , offset_Nums[i], stride_sum);
         }
 
-        for (int i = 0; i < n_cores; i++) {
+        for (int i = 0; i < cpuCores; i++) {
             addition_Threads[i].join();
         }
     };
@@ -343,21 +359,19 @@ auto main() -> int {
         stride = pow(2, block_width);
         stride_point = secp256k1->ScalarMultiplication(stride);
         
-        int n_cores = cpuCores;
-        
         mpz_class offset_Step, vector_Num;
-        mpz_fdiv_q_ui(offset_Step.get_mpz_t(), S_table[range_start - 2].get_mpz_t(),  n_cores);
+        mpz_fdiv_q_ui(offset_Step.get_mpz_t(), S_table[range_start - 2].get_mpz_t(),  cpuCores);
         
         vector_Num = 0;
         vector<mpz_class> offset_Nums;
-        for (int i = 0; i < n_cores; i++) {
+        for (int i = 0; i < cpuCores; i++) {
             offset_Nums.push_back(vector_Num);
             mpz_add(vector_Num.get_mpz_t(), vector_Num.get_mpz_t(), offset_Step.get_mpz_t());
         }
         
         vector<Point> offset_Points;
         offset_Points.push_back(secp256k1->G);
-        for (int i = 1; i < n_cores; i++) {
+        for (int i = 1; i < cpuCores; i++) {
             offset_Points.push_back(secp256k1->ScalarMultiplication(offset_Nums[i]));
         }
         
@@ -365,7 +379,7 @@ auto main() -> int {
         Point vector_Point(start_point);
         starting_Points.push_back(vector_Point);
         
-        for (int i = 1; i < n_cores; i++) {
+        for (int i = 1; i < cpuCores; i++) {
             vector_Point = secp256k1->SubtractPoints(start_point, offset_Points[i]);
             starting_Points.push_back(vector_Point);
         }
@@ -398,7 +412,8 @@ auto main() -> int {
             mpz_class deltaX[POINTS_BATCH_SIZE]; // here we store (x1 - x2) batch that will be inverted for later multiplication
             mpz_class pointBatchX[POINTS_BATCH_SIZE]; // X coordinates of the batch
             mpz_class pointBatchY[POINTS_BATCH_SIZE]; // Y coordinates of the batch
-            mpz_class deltaY, slope; // values to store the results of points addition formula
+            mpz_class deltaY; // values to store the results of points addition formula
+            mpz_class slope[POINTS_BATCH_SIZE];
 
             mpz_class batch_stride, batch_index;
             mpz_mul_ui(batch_stride.get_mpz_t(), stride.get_mpz_t(), POINTS_BATCH_SIZE);
@@ -412,23 +427,33 @@ auto main() -> int {
     
                 modGroup.ModInv(deltaX); // assign array deltaX to modGroup for batch inversion
                 
-                for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // follow points addition formula logic
+                int i;
+                for (i = 0; i < POINTS_BATCH_SIZE - 1; i++) { // follow points addition formula logic
                     
                     mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
-                    mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
-                    mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
+                    mpz_mul(slope[i].get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
+                    mpz_mod(slope[i].get_mpz_t(), slope[i].get_mpz_t(), Fp.get_mpz_t());
 
-                    mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                    mpz_mul(pointBatchX[i].get_mpz_t(), slope[i].get_mpz_t(), slope[i].get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
-        
-                    mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
-                    mpz_mul(pointBatchY[i].get_mpz_t(), slope.get_mpz_t(), pointBatchY[i].get_mpz_t());
-                    mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
-                    mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 }
+                
+                mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
+                mpz_mul(slope[i].get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
+                mpz_mod(slope[i].get_mpz_t(), slope[i].get_mpz_t(), Fp.get_mpz_t());
+
+                mpz_mul(pointBatchX[i].get_mpz_t(), slope[i].get_mpz_t(), slope[i].get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
+                mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
+        
+                mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                mpz_mul(pointBatchY[i].get_mpz_t(), slope[i].get_mpz_t(), pointBatchY[i].get_mpz_t());
+                mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
+                mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
                 
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) {
 
@@ -439,7 +464,10 @@ auto main() -> int {
                         print_time(); cout << "BloomFilter Hit " << bloomfile1 << " (Even Point) [Higher Range Half]" << endl;
 
                         BloomP.x = pointBatchX[i];
-                        BloomP.y = pointBatchY[i];
+                        mpz_sub(BloomP.y.get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                        mpz_mul(BloomP.y.get_mpz_t(), slope[i].get_mpz_t(), BloomP.y.get_mpz_t());
+                        mpz_sub(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), startPoint.y.get_mpz_t());
+                        mpz_mod(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), Fp.get_mpz_t());
 
                         privkey_num.clear();
                         index = 0;
@@ -493,7 +521,10 @@ auto main() -> int {
                         print_time(); cout << "BloomFilter Hit " << bloomfile2 << " (Odd Point) [Higher Range Half]" << endl;
 
                         BloomP.x = pointBatchX[i];
-                        BloomP.y = pointBatchY[i];
+                        mpz_sub(BloomP.y.get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                        mpz_mul(BloomP.y.get_mpz_t(), slope[i].get_mpz_t(), BloomP.y.get_mpz_t());
+                        mpz_sub(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), startPoint.y.get_mpz_t());
+                        mpz_mod(BloomP.y.get_mpz_t(), BloomP.y.get_mpz_t(), Fp.get_mpz_t());
 
                         privkey_num.clear();
                         index = 0;
@@ -567,12 +598,12 @@ auto main() -> int {
             } // while (true) loop end curly brace
         };
 
-        std::thread subtraction_Threads[n_cores];
-        for (int i = 0; i < n_cores; i++) {
+        std::thread subtraction_Threads[cpuCores];
+        for (int i = 0; i < cpuCores; i++) {
             subtraction_Threads[i] = std::thread(scalable_subtraction_search, starting_Points[i], i , offset_Nums[i], stride_sum);
         }
 
-        for (int i = 0; i < n_cores; i++) {
+        for (int i = 0; i < cpuCores; i++) {
             subtraction_Threads[i].join();
         }
     };

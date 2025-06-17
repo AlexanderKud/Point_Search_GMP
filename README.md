@@ -9,6 +9,12 @@ generate_bloom.cpp
 - calculating just x coordinate for the batch - 1
 - calculating x,y for the last of the batch entry (used as the next startPoint)
 
+point_search.cpp
+- batch addition
+- batch inversion
+- calculating just x coordinate for the batch - 1
+- calculating x,y for the last of the batch entry (used as the next startPoint)
+
 [alexander@alexander-home Point_Search_GMP]$ ./generate_bloom
 [17:13:18] P_table generated
 [17:13:18] Range Start: 54 bits
@@ -34,7 +40,7 @@ generate_bloom.cpp
 [17:15:28] Search in progress...
 [17:15:42] BloomFilter Hit bloom2.bf (Odd Point) [Higher Range Half]
 [17:15:42] Privatekey: 0000000000000000000000000000000000000000000000000069fb4a3e8205d5
-[17:15:42] Elapsed time: (0)hours (0)minutes (12)seconds
+[17:15:42] Elapsed time: (0)hours (0)minutes (10)seconds
 
 ./generate_bloom uses multiple threads and batch inversion to fill in the bloomfilter binary.
 to split the space evenly, number of cores needs to be some power of two value.
