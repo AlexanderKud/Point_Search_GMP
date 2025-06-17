@@ -146,7 +146,7 @@ auto main() -> int {
                       
             Point startPoint = start_point; // start point
     
-            for (int i = 0; i < nbBatch; i++) {
+            for (int s = 0; s < nbBatch; s++) {
                 
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // we compute (x1 - x2) for each entry of the entire batch
                     mpz_sub(deltaX[i].get_mpz_t(), startPoint.x.get_mpz_t(), addPoints[i].x.get_mpz_t());
@@ -155,7 +155,8 @@ auto main() -> int {
     
                 modGroup.ModInv(deltaX); // assign array deltaX to modGroup for batch inversion
                 
-                for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // follow points addition formula logic
+                int i;
+                for (i = 0; i < POINTS_BATCH_SIZE - 1; i++) { // follow points addition formula logic
                     
                     mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
                     mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
@@ -165,13 +166,22 @@ auto main() -> int {
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
-        
-                    mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
-                    mpz_mul(pointBatchY[i].get_mpz_t(), slope.get_mpz_t(), pointBatchY[i].get_mpz_t());
-                    mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
-                    mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 }
+                
+                mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
+                mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
+                mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
+
+                mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
+                mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
+        
+                mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                mpz_mul(pointBatchY[i].get_mpz_t(), slope.get_mpz_t(), pointBatchY[i].get_mpz_t());
+                mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
+                mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 omp_set_lock(&lock1);
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // inserting all batch points into the bloomfilter
@@ -228,7 +238,7 @@ auto main() -> int {
                       
             Point startPoint = start_point; // start point
             
-            for (int i = 0; i < nbBatch; i++) {
+            for (int s = 0; s < nbBatch; s++) {
                 
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // we compute (x1 - x2) for each entry of the entire batch
                     mpz_sub(deltaX[i].get_mpz_t(), startPoint.x.get_mpz_t(), addPoints[i].x.get_mpz_t());
@@ -237,7 +247,8 @@ auto main() -> int {
     
                 modGroup.ModInv(deltaX); // assign array deltaX to modGroup for batch inversion
                 
-                for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // follow points addition formula logic
+                int i;
+                for (i = 0; i < POINTS_BATCH_SIZE - 1; i++) { // follow points addition formula logic
                     
                     mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
                     mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
@@ -247,13 +258,22 @@ auto main() -> int {
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
                     mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
                     mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
-        
-                    mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
-                    mpz_mul(pointBatchY[i].get_mpz_t(), slope.get_mpz_t(), pointBatchY[i].get_mpz_t());
-                    mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
-                    mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 }
+                
+                mpz_sub(deltaY.get_mpz_t(), startPoint.y.get_mpz_t(), addPoints[i].y.get_mpz_t());
+                mpz_mul(slope.get_mpz_t(), deltaY.get_mpz_t(), deltaX[i].get_mpz_t());
+                mpz_mod(slope.get_mpz_t(), slope.get_mpz_t(), Fp.get_mpz_t());
+
+                mpz_mul(pointBatchX[i].get_mpz_t(), slope.get_mpz_t(), slope.get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), startPoint.x.get_mpz_t());
+                mpz_sub(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), addPoints[i].x.get_mpz_t());
+                mpz_mod(pointBatchX[i].get_mpz_t(), pointBatchX[i].get_mpz_t(), Fp.get_mpz_t());
+        
+                mpz_sub(pointBatchY[i].get_mpz_t(), startPoint.x.get_mpz_t(), pointBatchX[i].get_mpz_t());
+                mpz_mul(pointBatchY[i].get_mpz_t(), slope.get_mpz_t(), pointBatchY[i].get_mpz_t());
+                mpz_sub(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), startPoint.y.get_mpz_t());
+                mpz_mod(pointBatchY[i].get_mpz_t(), pointBatchY[i].get_mpz_t(), Fp.get_mpz_t());
 
                 omp_set_lock(&lock2);
                 for (int i = 0; i < POINTS_BATCH_SIZE; i++) { // inserting all batch points into the bloomfilter

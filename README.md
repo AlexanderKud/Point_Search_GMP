@@ -3,12 +3,11 @@ Requires C++ Boost Library to be installed. <a href="https://www.boost.org">http
 Requires C/C++ GMP Library to be installed. <a href="https://gmplib.org">https://gmplib.org</a>
 Requires C/C++ OpenMP Library to be installed. <a href="https://www.openmp.org">https://www.openmp.org</a>
 
-This is a pre_update.
-Final Update will implement entire set of batch point addition logic from JLP BSGS.cpp
-- batch addition/subtraction
+generate_bloom.cpp
+- batch addition
 - batch inversion
-- center of the group
-- calculating just x coordinate for the batch
+- calculating just x coordinate for the batch - 1
+- calculating x,y for the last of the batch entry (used as the next startPoint)
 
 [alexander@alexander-home Point_Search_GMP]$ ./generate_bloom
 [17:13:18] P_table generated
@@ -21,7 +20,7 @@ Final Update will implement entire set of batch point addition logic from JLP BS
 [17:13:18] Creating bloom2 image with 4 threads
 [17:15:12] Writing bloom1 image to bloom1.bf
 [17:15:13] Writing bloom2 image to bloom2.bf
-[17:15:13] Elapsed time: (0)hours (1)minutes (48)seconds
+[17:15:13] Elapsed time: (0)hours (1)minutes (44)seconds
 
 
 [alexander@alexander-home Point_Search_GMP]$ ./point_search
