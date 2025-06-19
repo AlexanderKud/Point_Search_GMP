@@ -17,6 +17,7 @@ point_search.cpp
 - batch inversion
 - calculating just x coordinate for the batch - 1
 - calculating x,y for the last of the batch entry (used as the next startPoint)
+- bloom check by x coordinate, computing y coordinate only if there is a hit
 
 [alexander@alexander-home Point_Search_GMP]$ ./generate_bloom
 [17:13:18] P_table generated
