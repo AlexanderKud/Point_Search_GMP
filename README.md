@@ -11,6 +11,7 @@ generate_bloom.cpp
 - batch inversion
 - calculating just x coordinate for the batch - 1
 - calculating x,y for the last of the batch entry (used as the next startPoint)
+- bloom add only x coordinate
 
 point_search.cpp
 - batch addition
