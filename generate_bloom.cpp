@@ -1,11 +1,10 @@
 #include <iostream>
 #include <fstream>
 #include <chrono>
-#include <filesystem>
 #include <vector>
 #include <thread>
-#include <gmpxx.h>
 #include <gmp.h>
+#include <gmpxx.h>
 #include <omp.h>
 
 #include "secp256k1/secp256k1.h"
@@ -13,7 +12,10 @@
 #include "util/util.h"
 
 using namespace std;
-namespace fs = filesystem;
+using filter = boost::bloom::filter<std::string, 32>;
+
+const double error = 0.0000000001;
+const int n_cores = 4;  //actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...) divided by 2
 
 static constexpr int POINTS_BATCH_SIZE = 1024; // Batch addition with batch inversion(one ModInv for the entire group) using IntGroup class
 const mpz_class Fp = mpz_class("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10);
@@ -26,14 +28,10 @@ auto main() -> int {
     auto start = std::chrono::high_resolution_clock::now();    // starting the timer
     Secp256k1 *secp256k1 = new Secp256k1(); secp256k1->Init(); // initializing secp256k1 context
     
-    fs::path current_path = fs::current_path(); // deleting previous settings and bloom files
-    auto file_list = get_files_in_directory(current_path);
-    vector<string> targets = {"settings1.txt", "settings2.txt", "bloom1.bf", "bloom2.bf"};
-    for (auto i : file_list) {
-        for (auto t : targets) {
-            if (i == t) { std::remove(t.c_str()); }
-        }
-    }
+    std::remove("settings1.txt"); // remove previous settings and bloom files
+    std::remove("settings2.txt");
+    std::remove("bloom1.bf");
+    std::remove("bloom2.bf");
 
     mpz_class pk; pk = 1; // generating power of two points table (2^0..2^256) 
     vector<Point> P_table;
@@ -49,9 +47,9 @@ auto main() -> int {
     uint64_t range_start, range_end, block_width; // block_width = number of elements in the bloomfilter 
     string temp, search_pub;                      // and a stride size to walk the range
     ifstream inFile("settings.txt");
-    getline(inFile, temp); range_start = str_to_uint64(temp);
-    getline(inFile, temp); range_end = str_to_uint64(temp);
-    getline(inFile, temp); block_width = str_to_uint64(temp);
+    getline(inFile, temp); range_start = std::stoull(temp);
+    getline(inFile, temp); range_end = std::stoull(temp);
+    getline(inFile, temp); block_width = std::stoull(temp);
     getline(inFile, temp); search_pub = trim(temp);
     inFile.close();
     print_time(); cout << "Range Start: " << range_start << " bits" << endl;
@@ -100,10 +98,8 @@ auto main() -> int {
     
     print_time(); cout << "Settings written to file" << endl;
     
-    using filter = boost::bloom::filter<std::string, 32>;
+
     uint64_t n_elements = uint64_t(pow(2, block_width));
-    double error = 0.0000000001;
-    int n_cores = 4;  //actual number of processing cores but equal to some power of two value(2,4,8,16,32,64,...) divided by 2
     uint64_t count = uint64_t(pow(2, block_width) / n_cores); // actual cores = 8  8 / 2 = 4 cores for each lambda function
     mpz_class add_key;                                        // should be some power of two to evenly divide the space between threads
     add_key = count;                                          // here we have namely 11 threads( 1-main thread 2,3 - lambda functions
@@ -198,8 +194,6 @@ auto main() -> int {
         for (int i = 0; i < n_cores; i++) {
             myThreads[i] = std::thread(process_chunk, starting_points[i]);
         }
-    
-        print_time(); cout << "Creating bloom1 image with " << n_cores << " threads" << '\n';
 
         for (int i = 0; i < n_cores; i++) {
             myThreads[i].join();
@@ -291,7 +285,6 @@ auto main() -> int {
             myThreads[i] = std::thread(process_chunk, starting_points[i]);
         }
     
-        print_time(); cout << "Creating bloom2 image with " << n_cores << " threads" << '\n';
 
         for (int i = 0; i < n_cores; i++) {
             myThreads[i].join();
@@ -310,6 +303,8 @@ auto main() -> int {
 
     std::thread thread1(bloom_create1);
     std::thread thread2(bloom_create2);
+
+    print_time(); cout << "Creating bloomfilter images" << '\n';
     
     thread1.join();
     thread2.join();
