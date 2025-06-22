@@ -18,11 +18,11 @@ using filter = boost::bloom::filter<std::string, 32>;
 
 static constexpr int POINTS_BATCH_SIZE = 1024; // Batch addition with batch inversion(one ModInv for the entire group) using IntGroup class
 const mpz_class Fp = mpz_class("115792089237316195423570985008687907853269984665640564039457584007908834671663", 10);
+const int cpuCores = std::thread::hardware_concurrency(); // actual number of processing cores
 
 auto main() -> int {
 
     Secp256k1 *secp256k1 = new Secp256k1(); secp256k1->Init(); // initialize secp256k1 context
-    int cpuCores = 4; // actual number of processing cores divided by 2
     
     mpz_class pk; pk = 1; // generating power of two values (2^0..2^256) table
     vector<mpz_class> S_table;
