@@ -72,7 +72,7 @@ auto main() -> int {
     in2.close();
     
     auto pow10_nums = break_down_to_pow10(uint64_t(pow(2, block_width))); // decomposing the 2^block_width to the power of ten values
-    vector<Point> pow10_points;                                           // to get the index of the bloomfilter element fast
+    vector<Point> pow10_points;                                           // to get the offset from the target point based on bloomfilter hits
     mpz_class pow_key;
     for (auto& n : pow10_nums) { // calculating points corresponding to the decomposition components
         pow_key = n;
@@ -206,7 +206,7 @@ auto main() -> int {
 
                         privkey_num.clear();
                         index = 0;
-                        for (auto& p : pow10_points) { // getting the index of the element in the bloomfilter
+                        for (auto& p : pow10_points) { // getting the offset from the target point based on bloomfilter hits
                             count = 0;
                             xc_sub = secp256k1->GetXHex(BloomP.x);
                             while (bf1.may_contain(xc_sub)) {
@@ -220,7 +220,7 @@ auto main() -> int {
                         }
 
                         steps = 0;
-                        for (auto& n : privkey_num) { steps += n; } // we got here the index of the element in the bloomfilter
+                        for (auto& n : privkey_num) { steps += n; } // we got here the offset
                         Int_steps = steps; // restoring the private key
                         mpz_mul_ui(batch_index.get_mpz_t(), stride.get_mpz_t(), (i + 1));
                         mpz_add(Int_temp.get_mpz_t(), stride_sum.get_mpz_t(), batch_index.get_mpz_t());
@@ -263,7 +263,7 @@ auto main() -> int {
 
                         privkey_num.clear();
                         index = 0;
-                        for (auto& p : pow10_points) {
+                        for (auto& p : pow10_points) { // getting the offset from the target point based on bloomfilter hits
                             count = 0;
                             xc_sub = secp256k1->GetXHex(BloomP.x);
                             while (bf2.may_contain(xc_sub)) {
@@ -277,7 +277,7 @@ auto main() -> int {
                         }
 
                         steps = 0;
-                        for (auto& n : privkey_num) { steps += n; }
+                        for (auto& n : privkey_num) { steps += n; } //we got here the offset
                         Int_steps = steps;
                         mpz_mul_ui(batch_index.get_mpz_t(), stride.get_mpz_t(), (i + 1));
                         mpz_add(Int_temp.get_mpz_t(), stride_sum.get_mpz_t(), batch_index.get_mpz_t());
@@ -285,7 +285,7 @@ auto main() -> int {
                         mpz_sub(Int_temp.get_mpz_t(), Int_temp.get_mpz_t(), Int_steps.get_mpz_t());
                         mpz_sub(privkey.get_mpz_t(), pre_calc_sum.get_mpz_t(), Int_temp.get_mpz_t());
                         mpz_mul_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 2);
-                        mpz_add_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 1);
+                        mpz_add_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 1); // we got here the private key
                         calc_point = secp256k1->ScalarMultiplication(privkey);
                         
                         if (secp256k1->GetPublicKeyHex(calc_point) == search_pub) { // if cpubs are equal we got it
@@ -470,7 +470,7 @@ auto main() -> int {
 
                         privkey_num.clear();
                         index = 0;
-                        for (auto& p : pow10_points) {
+                        for (auto& p : pow10_points) { // getting the offset from the target point based on bloomfilter hits
                             count = 0;
                             xc_sub = secp256k1->GetXHex(BloomP.x);
                             while (bf1.may_contain(xc_sub)) {
@@ -484,14 +484,14 @@ auto main() -> int {
                         }
 
                         steps = 0;
-                        for (auto& n : privkey_num) { steps += n; }
+                        for (auto& n : privkey_num) { steps += n; } // we got here the offset
                         Int_steps = steps;
                         mpz_mul_ui(batch_index.get_mpz_t(), stride.get_mpz_t(), i + 1);
                         mpz_add(Int_temp.get_mpz_t(), stride_sum.get_mpz_t(), batch_index.get_mpz_t());
                         mpz_add(Int_temp.get_mpz_t(), Int_temp.get_mpz_t(), offset.get_mpz_t());
                         mpz_add(Int_temp.get_mpz_t(), Int_temp.get_mpz_t(), Int_steps.get_mpz_t());
                         mpz_add(privkey.get_mpz_t(), pre_calc_sum.get_mpz_t(), Int_temp.get_mpz_t());
-                        mpz_mul_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 2);
+                        mpz_mul_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 2); //we got here the private key
                         calc_point = secp256k1->ScalarMultiplication(privkey);
 
                         if (secp256k1->GetPublicKeyHex(calc_point) == search_pub) { // if cpubs are equal we got it
@@ -527,7 +527,7 @@ auto main() -> int {
 
                         privkey_num.clear();
                         index = 0;
-                        for (auto& p : pow10_points) {
+                        for (auto& p : pow10_points) { // getting the offset from the target point based on bloomfilter hits
                             count = 0;
                             xc_sub = secp256k1->GetXHex(BloomP.x);
                             while (bf2.may_contain(xc_sub)) {
@@ -541,7 +541,7 @@ auto main() -> int {
                         }
 
                         steps = 0;
-                        for (auto& n : privkey_num) { steps += n; }
+                        for (auto& n : privkey_num) { steps += n; } //we got here the offset
                         Int_steps = steps;
                         mpz_mul_ui(batch_index.get_mpz_t(), stride.get_mpz_t(), i + 1);
                         mpz_add(Int_temp.get_mpz_t(), stride_sum.get_mpz_t(), batch_index.get_mpz_t());
@@ -549,7 +549,7 @@ auto main() -> int {
                         mpz_add(Int_temp.get_mpz_t(), Int_temp.get_mpz_t(), Int_steps.get_mpz_t());
                         mpz_add(privkey.get_mpz_t(), pre_calc_sum.get_mpz_t(), Int_temp.get_mpz_t());
                         mpz_mul_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 2);
-                        mpz_add_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 1);
+                        mpz_add_ui(privkey.get_mpz_t(), privkey.get_mpz_t(), 1); // we got here the private key
                         calc_point = secp256k1->ScalarMultiplication(privkey);
 
                         if (secp256k1->GetPublicKeyHex(calc_point) == search_pub) { // if cpubs are equal we got it
